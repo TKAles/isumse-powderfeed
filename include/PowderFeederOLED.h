@@ -16,7 +16,7 @@ class PowderFeederOLED
         void hideRemoteIcon();
 
         void flashInvertLCD(int _duration=100);
-        void drawRPMScreen(int _RPMScaledByOneTen);
+        void drawRPMScreen(int _RPMScaledByTen);
 
     private:
         

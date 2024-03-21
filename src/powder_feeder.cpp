@@ -21,12 +21,13 @@
 // Configuration settings, most should be pretty explainatory
 const int ENCODER_RPM_RESOLUTION_STEP = 2;
 const int ENCODER_MIN_RPM_CLIP = 0;
-const int ENCODER_MAX_RPM_CLIP = 30;
+const int ENCODER_MAX_RPM_CLIP = 300;
 
 // Global status flags and values used by the ISRs
 volatile bool NEW_ENCODER_INFO = false;
 volatile bool FEEDER_SPINNING = false;
 volatile int ENCODER_VALUE;
+volatile bool FLASH_EVENT;
 volatile unsigned long LAST_TIME;
 const unsigned long DEBOUNCE_TIME_MS = 200;
 PowderFeederOLED PF_DISPLAY;
@@ -117,6 +118,20 @@ for(int i = 0 ; i<3; i++)
 }
 
 void loop() {
+  // Check the encoder value is within configured limits,
+  // otherwise clip it.
+  if(ENCODER_VALUE < ENCODER_MIN_RPM_CLIP)
+  {
+    ENCODER_VALUE = ENCODER_MIN_RPM_CLIP;
+    PF_DISPLAY.minimumAlertFlash();
+  }
+  if(ENCODER_VALUE > ENCODER_MAX_RPM_CLIP)
+  {
+    ENCODER_VALUE = ENCODER_MAX_RPM_CLIP;
+    FLASH_EVENT = true;
+  }
+
+  // See if new encoder information should be printed to serial
   if(NEW_ENCODER_INFO)
    {
     Serial.print(" ENCVAL: ");
@@ -124,6 +139,15 @@ void loop() {
     Serial.print("\n");
     NEW_ENCODER_INFO = false;
    }
+  // Draw the current RPM value
+  // value is scaled by ten and stored as an integer
+  // for speed / solve interrupt crashes.
+  // e.g. 118 actually means 11.8
   PF_DISPLAY.drawRPMScreen(ENCODER_VALUE);
+  if(FLASH_EVENT)
+  {
+    PF_DISPLAY.flashInvertLCD();
+    FLASH_EVENT = false;
+  }
 
 }
