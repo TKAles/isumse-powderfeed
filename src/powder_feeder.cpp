@@ -22,8 +22,6 @@ volatile unsigned long LAST_TIME;
 const unsigned long DEBOUNCE_TIME_MS = 200;
 PowderFeederOLED PF_DISPLAY;
 
-void draw_rpm(int rpm_val);
-
 IRAM_ATTR void encoderSWISR()
 {
   if(FEEDER_SPINNING)
@@ -72,11 +70,6 @@ void setup() {
   // memory for the OLED display
   Serial.begin(115200);
   LAST_TIME = 0;
-  OLED.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR);
-  delay(100);
-  //OLED.drawRect(0, 0, OLED_WIDTH, OLED_HEIGHT, SSD1306_BLACK);
-  OLED.fillRect(0, 0, OLED_WIDTH, OLED_HEIGHT, 0);
-  OLED.display();
   // Set the modes for various inputs/outputs
   pinMode(ENC_A_PIN, INPUT);
   pinMode(ENC_B_PIN, INPUT);
@@ -104,7 +97,6 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedy:
    draw_rpm(ENCODER_VALUE);
-   OLED.display();
    if(NEW_ENCODER_INFO)
    {
     Serial.print(" ENCVAL: ");
@@ -112,21 +104,4 @@ void loop() {
     Serial.print("\n");
     NEW_ENCODER_INFO = false;
    }
-   OLED.clearDisplay();
-}
-
-void draw_rpm(int rpmval)
-{
-  float actual_rpm_value = float(rpmval) / 5.0;
-
-  OLED.setCursor(5,5);
-  OLED.setTextColor(SSD1306_WHITE);
-  OLED.setTextSize(2);
-  OLED.print("RPM");
-  OLED.setCursor(5, 35);
-  OLED.setTextSize(4);
-  char rpmstr[4];
-  dtostrf(actual_rpm_value, 4, 1, rpmstr);
-  OLED.print(rpmstr);
-  return;
 }
