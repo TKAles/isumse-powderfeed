@@ -123,12 +123,12 @@ void loop() {
   if(ENCODER_VALUE < ENCODER_MIN_RPM_CLIP)
   {
     ENCODER_VALUE = ENCODER_MIN_RPM_CLIP;
-    PF_DISPLAY.minimumAlertFlash();
+    PF_DISPLAY.ClippingAlertFlash(true);
   }
   if(ENCODER_VALUE > ENCODER_MAX_RPM_CLIP)
   {
     ENCODER_VALUE = ENCODER_MAX_RPM_CLIP;
-    FLASH_EVENT = true;
+    PF_DISPLAY.ClippingAlertFlash(false);
   }
 
   // See if new encoder information should be printed to serial

@@ -43,18 +43,24 @@ void PowderFeederOLED::drawRPMScreen(int _RPMScaledByTen)
     this->_oledScreenObj.display();
 }
 
-void PowderFeederOLED::minimumAlertFlash()
+void PowderFeederOLED::ClippingAlertFlash(bool _minMode)
 {
     this->clearLCD();
     this->_oledScreenObj.setTextColor(SSD1306_WHITE);
-    this->_oledScreenObj.setCursor(0,64);
-    this->_oledScreenObj.setTextSize(4);
-    this->_oledScreenObj.print("MIN");
+    this->_oledScreenObj.setCursor(15,10);
+    this->_oledScreenObj.setTextSize(6);
+    if(_minMode) this->_oledScreenObj.print("MIN");
+    if(!_minMode) this->_oledScreenObj.print("MAX");
     this->_oledScreenObj.display();
+    delay(250);
+    this->_oledScreenObj.invertDisplay(true);
+    delay(100);
+    this->_oledScreenObj.invertDisplay(false);
     delay(100);
     this->_oledScreenObj.invertDisplay(true);
     delay(100);
     this->_oledScreenObj.invertDisplay(false);
+    
     this->_oledScreenObj.clearDisplay();
     this->_oledScreenObj.display();
     return;

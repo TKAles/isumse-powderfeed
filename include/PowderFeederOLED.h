@@ -9,8 +9,7 @@ class PowderFeederOLED
                         int oledI2CAddr);
         
         void clearLCD();
-        void minimumAlertFlash();
-        void maximumAlterFlash();
+        void ClippingAlertFlash(bool _minMode = true);
 
         void showRemoteIcon();
         void hideRemoteIcon();
