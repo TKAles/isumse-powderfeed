@@ -22,6 +22,9 @@ volatile unsigned long LAST_TIME;
 const unsigned long DEBOUNCE_TIME_MS = 200;
 PowderFeederOLED PF_DISPLAY;
 
+// Interrupt for the encoder switch
+// the IRAM_ATTR instructs the ESP to keep this
+// in its instruction RAM instead of the flash
 IRAM_ATTR void encoderSWISR()
 {
   if(FEEDER_SPINNING)
@@ -37,6 +40,8 @@ IRAM_ATTR void encoderSWISR()
     digitalWrite(RED_LED_PIN, 0);
   }
 }
+// Interrupt for the encoder rotation
+
 IRAM_ATTR void encoderISRA()
 {
     
@@ -66,10 +71,10 @@ IRAM_ATTR void encoderISRA()
 
 
 void setup() {
-  // Initialize serial port and allocate
-  // memory for the OLED display
   Serial.begin(115200);
   LAST_TIME = 0;
+  PF_DISPLAY.setupLCD(OLED_WIDTH, OLED_HEIGHT, OLED_ADDR);
+   
   // Set the modes for various inputs/outputs
   pinMode(ENC_A_PIN, INPUT);
   pinMode(ENC_B_PIN, INPUT);
@@ -77,11 +82,13 @@ void setup() {
   pinMode(RED_LED_PIN, OUTPUT);
   pinMode(GRN_LED_PIN, OUTPUT);
   pinMode(BLU_LED_PIN, OUTPUT);
+  
   // Startup Self-Test
   digitalWrite(RED_LED_PIN, 0);
   digitalWrite(GRN_LED_PIN, 0);
   digitalWrite(BLU_LED_PIN, 0);
   delay(500);
+
   // Attach the interrupts for the encoder and switch
   attachInterrupt(
     digitalPinToInterrupt(ENC_A_PIN),
@@ -89,15 +96,18 @@ void setup() {
   attachInterrupt(
     digitalPinToInterrupt(ENC_SW_PIN),
     encoderSWISR, CHANGE);
-
-  
+// LCD test    
+for(int i = 0 ; i<3; i++)
+{
+  PF_DISPLAY.flashInvertLCD();
+  delay(100);
+}
 
 }
 
 void loop() {
-  // put your main code here, to run repeatedy:
-   draw_rpm(ENCODER_VALUE);
-   if(NEW_ENCODER_INFO)
+  PF_DISPLAY.drawRPMScreen(0.0);
+  if(NEW_ENCODER_INFO)
    {
     Serial.print(" ENCVAL: ");
     Serial.print(ENCODER_VALUE);
