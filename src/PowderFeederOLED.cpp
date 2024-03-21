@@ -5,7 +5,7 @@ void PowderFeederOLED::setupLCD(int oledWidth, int oledHeight, int oledI2Caddr)
     this->_oledScreenObj = Adafruit_SSD1306(oledWidth, oledHeight, &Wire);
     this->_oledScreenObj.begin(SSD1306_SWITCHCAPVCC, oledI2Caddr);
     this->clearLCD();
-    sleep(0.250);
+    delay(250);
     this->_oledScreenObj.invertDisplay(false);
     this->_oledScreenObj.display();
 
@@ -23,7 +23,7 @@ void PowderFeederOLED::clearLCD()
     this->_oledScreenObj.display();
     return;
 }
-void PowderFeederOLED::drawRPMScreen(float _displayRPM)
+void PowderFeederOLED::drawRPMScreen(int _RPMScaledByOneTen)
 {
     const char _rpmstr[] = "RPM:";
     // Clear the display first.
@@ -34,7 +34,8 @@ void PowderFeederOLED::drawRPMScreen(float _displayRPM)
     this->_oledScreenObj.setCursor(0,0);
     this->_oledScreenObj.print(_rpmstr);
     char _rpmval[4];
-    dtostrf(_displayRPM, 4, 1, _rpmval);
+    float _rpmFloat = _RPMScaledByOneTen / 10.0;
+    dtostrf(_rpmFloat, 4, 1, _rpmval);
     this->_oledScreenObj.setTextSize(4);
     this->_oledScreenObj.setCursor(0, 28);
     this->_oledScreenObj.print(_rpmval);

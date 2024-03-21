@@ -3,18 +3,27 @@
 #include <Wire.h>
 #include <PowderFeederOLED.h>
 
+// Hookup and I2C macros for the OLED screen
 #define OLED_WIDTH 128
 #define OLED_HEIGHT 64
 #define OLED_ADDR 0x3C
 
+// Pin macros for the rotary switch
 #define ENC_A_PIN 5
 #define ENC_B_PIN 4
 #define ENC_SW_PIN 14
 
+// Pin macros for blinkenlights.
 #define RED_LED_PIN 32
 #define GRN_LED_PIN 33 
 #define BLU_LED_PIN 25
 
+// Configuration settings, most should be pretty explainatory
+const int ENCODER_RPM_RESOLUTION_STEP = 2;
+const int ENCODER_MIN_RPM_CLIP = 0;
+const int ENCODER_MAX_RPM_CLIP = 30;
+
+// Global status flags and values used by the ISRs
 volatile bool NEW_ENCODER_INFO = false;
 volatile bool FEEDER_SPINNING = false;
 volatile int ENCODER_VALUE;
@@ -41,38 +50,40 @@ IRAM_ATTR void encoderSWISR()
   }
 }
 // Interrupt for the encoder rotation
-
 IRAM_ATTR void encoderISRA()
 {
-    
+    // Has enough time passed between two sucessive ISR firings?
+    // if not, do nothing
     if((LAST_TIME - millis()) < DEBOUNCE_TIME_MS)
     {
       return;
     }
-    
+    // Is the A leg of the encoder high? If not do nothing.
     byte a_status = digitalRead(ENC_A_PIN);
     if(a_status != 1)
     {
       return;
     }
-    
+    // If the A leg is high, and the B leg is also high, we must be
+    // going clockwise, otherwise we must be going CCW.
+    // Update the numerical value with one 'tick' of resolution and
+    // set a new last fired timestamp, notify the main loop that there
+    // is also new information for the display.
     if(a_status == digitalRead(ENC_B_PIN))
     {
-      ENCODER_VALUE += 1;
+      ENCODER_VALUE += ENCODER_RPM_RESOLUTION_STEP;
     } else {
-      ENCODER_VALUE -= 1;
+      ENCODER_VALUE -= ENCODER_RPM_RESOLUTION_STEP;
     }
-    
-    if(ENCODER_VALUE < 0) ENCODER_VALUE = 0;
     LAST_TIME = millis();
     NEW_ENCODER_INFO = true;
-   
 }
 
 
 void setup() {
   Serial.begin(115200);
   LAST_TIME = 0;
+  ENCODER_VALUE = 0;
   PF_DISPLAY.setupLCD(OLED_WIDTH, OLED_HEIGHT, OLED_ADDR);
    
   // Set the modes for various inputs/outputs
@@ -95,7 +106,7 @@ void setup() {
     encoderISRA, HIGH);
   attachInterrupt(
     digitalPinToInterrupt(ENC_SW_PIN),
-    encoderSWISR, CHANGE);
+    encoderSWISR, LOW);
 // LCD test    
 for(int i = 0 ; i<3; i++)
 {
@@ -106,7 +117,6 @@ for(int i = 0 ; i<3; i++)
 }
 
 void loop() {
-  PF_DISPLAY.drawRPMScreen(0.0);
   if(NEW_ENCODER_INFO)
    {
     Serial.print(" ENCVAL: ");
@@ -114,4 +124,6 @@ void loop() {
     Serial.print("\n");
     NEW_ENCODER_INFO = false;
    }
+  PF_DISPLAY.drawRPMScreen(ENCODER_VALUE);
+
 }
